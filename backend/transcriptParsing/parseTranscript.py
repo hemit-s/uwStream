@@ -3,39 +3,6 @@ import re
 from collections import defaultdict
 import sys
 
-if len(sys.argv) != 2:
-    print("Invalid Command Arguments")
-    print("Usage: ", sys.argv[0], " <pdf transcript name>")
-    exit(1)
-
-pdf_text = ""
-
-with pdfplumber.open(sys.argv[1]) as pdf:   
-    for page in pdf.pages:
-        pdf_text += page.extract_text()
-
-# print(pdf_text)
-
-termRegex = '(Fall|Winter|Spring)\s+(\d{4})'
-levelRegex = 'Level:\s+(\d\w)'
-courseRegex = '([A-Z]{2,})\s+(\d{1,3}\w?)\s'
-
-termIterator = re.finditer(termRegex, pdf_text)
-termIndexes = []
-for term in termIterator:
-    termIndexes.append(term)
-
-levelIterator = re.finditer(levelRegex, pdf_text)
-levelIndexes = []
-for level in levelIterator:
-    levelIndexes.append(level)
-
-courseIterator = re.finditer(courseRegex, pdf_text)
-courseIndexes = []
-for course in courseIterator:
-    courseIndexes.append(course)
-
-
 def groupCourseToIndexes(termIndexes, levelIndexes, courseIndexes):
     
     terms = defaultdict(set)
@@ -63,4 +30,39 @@ def groupCourseToIndexes(termIndexes, levelIndexes, courseIndexes):
 
     return terms
 
-groupCourseToIndexes(termIndexes, levelIndexes, courseIndexes)
+def getCoursesPerTerm(filename):
+
+    pdf_text = ""
+
+    with pdfplumber.open(filename) as pdf:   
+        for page in pdf.pages:
+            pdf_text += page.extract_text()
+
+    termRegex = '(Fall|Winter|Spring)\s+(\d{4})'
+    levelRegex = 'Level:\s+(\d\w)'
+    courseRegex = '([A-Z]{2,})\s+(\d{1,3}\w?)\s'
+
+    termIterator = re.finditer(termRegex, pdf_text)
+    termIndexes = []
+    for term in termIterator:
+        termIndexes.append(term)
+
+    levelIterator = re.finditer(levelRegex, pdf_text)
+    levelIndexes = []
+    for level in levelIterator:
+        levelIndexes.append(level)
+
+    courseIterator = re.finditer(courseRegex, pdf_text)
+    courseIndexes = []
+    for course in courseIterator:
+        courseIndexes.append(course)
+
+    return groupCourseToIndexes(termIndexes, levelIndexes, courseIndexes)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Invalid Command Arguments")
+        print("Usage: ", sys.argv[0], " <pdf transcript name>")
+        exit(1)
+
+    getCoursesPerTerm(sys.argv[1])
